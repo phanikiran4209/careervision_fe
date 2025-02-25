@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareerVision AI - Enhanced Career Guidance System
 
-## Getting Started
+## Overview
+CareerVision AI is a Next.js project built using TypeScript and Tailwind CSS. It provides a personalized career guidance system to help users navigate their career paths with AI-driven insights.
 
-First, run the development server:
+## Project Setup & Running
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Cloning the Repository
+```sh
+git clone <git-url>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installing Dependencies
+```sh
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Running the Development Server
+```sh
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build & Deployment
 
-## Learn More
+### Building the Project
+```sh
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Starting the Production Server
+```sh
+npm run start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Code Quality & Formatting
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Running Tests
+```sh
+npm run test
+```
 
-## Deploy on Vercel
+### Linting and Formatting
+```sh
+npm run lint        # Runs ESLint
+npm run format      # Formats code
+npm run prettier    # Runs Prettier
+npm run eslint      # Runs ESLint checks
+npm run stylelint   # Runs Stylelint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Auto-fixing Issues
+```sh
+npm run stylelint:fix  # Fixes Stylelint errors
+npm run eslint:fix     # Fixes ESLint errors
+npm run prettier:fix   # Fixes Prettier formatting issues
+npm run format:fix     # Fixes all formatting issues
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Build Process
+
+### General Builds
+```sh
+npm run build:css     # Builds CSS
+npm run build:js      # Builds JavaScript
+npm run build:html    # Builds HTML
+npm run build:images  # Optimizes images
+npm run build:fonts   # Processes fonts
+npm run build:media   # Processes media files
+```
+
+### Watch Mode (Automatic Rebuilding)
+```sh
+npm run build:css:watch    # Watches CSS changes
+npm run build:js:watch     # Watches JavaScript changes
+npm run build:html:watch   # Watches HTML changes
+npm run build:images:watch # Watches image updates
+npm run build:fonts:watch  # Watches font changes
+npm run build:media:watch  # Watches media updates
+```
+
+### Fixing Build Issues
+```sh
+npm run build:css:fix   # Fixes CSS build issues
+npm run build:js:fix    # Fixes JavaScript build issues
+npm run build:html:fix  # Fixes HTML build issues
+```
+
