@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import {
   Brain,
   LayoutDashboard,
@@ -16,174 +16,248 @@ import {
   Server,
   Lock,
   MessageSquare,
-} from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useRouter } from "next/navigation"
-
-const data = [
-  { month: "Jan", tests: 5 },
-  { month: "Feb", tests: 10 },
-  { month: "Mar", tests: 7 },
-  { month: "Apr", tests: 15 },
-  { month: "May", tests: 12 },
-  { month: "Jun", tests: 20 },
-]
+  CheckCircle,
+  Bell,
+  LogOut,
+  X,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useRouter } from "next/navigation";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, active: true },
   { name: "Assessment", icon: FileQuestion, active: false },
   { name: "Learning", icon: BookOpen, active: false },
   { name: "Community", icon: Users, active: false },
-]
-
-const courses = [
-  {
-    id: 1,
-    title: "AI/ML",
-    icon: Brain,
-    lessons: 13,
-    color: "bg-pink-500",
-    description: "In this course you will learn from basics to advance of Machine Learning and Artificial Intelligence",
-    url: "https://www.w3schools.com/ai/",
-  },
-  {
-    id: 2,
-    title: "Cyber Security",
-    icon: Shield,
-    lessons: 17,
-    color: "bg-purple-500",
-    description: "A cybersecurity course equips students with essential skills to protect digital assets",
-    url: "https://www.w3schools.com/cybersecurity/",
-  },
-  {
-    id: 3,
-    title: "Data Analytics",
-    icon: Database,
-    lessons: 10,
-    color: "bg-pink-500",
-    description: "In this Data Analytics course, you'll embark on a comprehensive journey into the world of data",
-    url: "https://www.w3schools.com/datascience/",
-  },
-  {
-    id: 4,
-    title: "AWS",
-    icon: Cloud,
-    lessons: 9,
-    color: "bg-green-500",
-    description: "This AWS course is tailored for you, whether you're a beginner or looking to advance your skills",
-    url: "https://www.w3schools.com/aws/",
-  },
-  {
-    id: 5,
-    title: "Data Science",
-    icon: Server,
-    lessons: 7,
-    color: "bg-pink-500",
-    description: "Our Data Science course equips you with essential skills to analyze and interpret data",
-    url: "https://www.w3schools.com/datascience/",
-  },
-  {
-    id: 6,
-    title: "Ethical Hacking",
-    icon: Lock,
-    lessons: 11,
-    color: "bg-pink-500",
-    description: "Explore the world of ethical hacking by learning how to exploit vulnerabilities in systems",
-    url: "https://www.w3schools.com/cybersecurity/",
-  },
-  {
-    id: 7,
-    title: "Cloud Computing",
-    icon: Cloud,
-    lessons: 9,
-    color: "bg-green-500",
-    description: "The Intermediate coding course is perfect for you if you aim to strengthen your cloud skills",
-    url: "https://www.w3schools.com/aws/",
-  },
-  {
-    id: 8,
-    title: "NLP & Deep Learning",
-    icon: MessageSquare,
-    lessons: 4,
-    color: "bg-purple-500",
-    description: "Explore the core of Natural Language Processing (NLP) and Deep Learning in this comprehensive course",
-    url: "https://www.w3schools.com/ai/",
-  },
-]
+];
 
 interface Assessment {
-  id: number
-  title: string
-  questions: number
+  title: string;
+  questions: { question: string; options: string[]; correct_answer: string | null }[];
+}
+
+interface Course {
+  module_name: string;
+  course_title: string;
+  course_link?: string;
+  course_content?: Array<{ title: string; content: string } | string> | string;
+  completed_by: string[];
+}
+
+interface Session {
+  session_title: string;
+  session_date: string;
+  session_type: string;
+}
+
+interface GraphData {
+  test_name: string;
+  tests: number;
+  highest_score: number;
 }
 
 export default function StudentDashboard() {
-  const router = useRouter()
-  const [activeSection, setActiveSection] = useState("dashboard")
-  const [currentAssessment, setCurrentAssessment] = useState<Assessment | null>(null)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [score, setScore] = useState<number | null>(null)
-  const [testsTaken, setTestsTaken] = useState(0)
+  const router = useRouter();
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [currentAssessment, setCurrentAssessment] = useState<Assessment | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [score, setScore] = useState<number | null>(null);
+  const [testsTaken, setTestsTaken] = useState(0);
+  const [highestScore, setHighestScore] = useState(0);
+  const [username, setUsername] = useState<string | null>(null);
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [graphData, setGraphData] = useState<GraphData[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [showSessionPopup, setShowSessionPopup] = useState(false);
 
-  const [assessments] = useState<Assessment[]>([
-    { id: 1, title: "Mathematics Quiz", questions: 10 },
-    { id: 2, title: "Science Test", questions: 15 },
-    { id: 3, title: "English Exam", questions: 20 },
-  ])
+  const fetchDashboardData = async (token: string) => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/dashboard/student", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setTestsTaken(data.tests_taken);
+        setHighestScore(data.highest_score);
+        setGraphData(data.graph_data || []);
+        setCourses(data.courses || []);
+        setSessions(data.sessions || []);
+      } else {
+        console.error("Failed to fetch dashboard data:", data.message);
+      }
+    } catch (err) {
+      console.error("Fetch dashboard data error:", err);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+      router.push("/student-login");
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:5000/profile/get", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok && data.exists) {
+          setUsername(data.profile.username);
+        }
+      } catch (err) {
+        console.error("Fetch profile error:", err);
+      }
+    };
+
+    const fetchAssessments = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:5000/admin/assessments", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setAssessments(data.assessments);
+        }
+      } catch (err) {
+        console.error("Fetch assessments error:", err);
+      }
+    };
+
+    fetchProfile();
+    fetchAssessments();
+    fetchDashboardData(token);
+  }, [router]);
 
   const startAssessment = (assessment: Assessment) => {
-    setCurrentAssessment(assessment)
-    setAnswers({})
-    setScore(null)
-  }
+    setCurrentAssessment(assessment);
+    setAnswers({});
+    setScore(null);
+  };
 
   const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }))
-  }
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  };
 
-  const submitAssessment = () => {
+  const submitAssessment = async () => {
     if (currentAssessment) {
-      const totalQuestions = currentAssessment.questions
-      const correctAnswers = Math.floor(Math.random() * (totalQuestions + 1))
-      const calculatedScore = (correctAnswers / totalQuestions) * 100
-      setScore(calculatedScore)
-      setTestsTaken((prevTests) => prevTests + 1)
+      const token = localStorage.getItem("jwtToken");
+      const totalQuestions = currentAssessment.questions.length;
+      let correctAnswers = 0;
+
+      currentAssessment.questions.forEach((q, index) => {
+        if (answers[`question-${index}`] === q.correct_answer) {
+          correctAnswers++;
+        }
+      });
+
+      const calculatedScore = (correctAnswers / totalQuestions) * 100;
+      setScore(calculatedScore);
+
+      const assessmentData = {
+        username,
+        assessment_id: currentAssessment.title,
+        score: calculatedScore,
+        date: new Date().toISOString(),
+      };
+      try {
+        const response = await fetch("http://127.0.0.1:5000/assessment/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(assessmentData),
+        });
+        if (response.ok) {
+          await fetchDashboardData(token);
+        }
+      } catch (err) {
+        console.error("Submit assessment error:", err);
+      }
     }
-  }
+  };
+
+  const handleProfileClick = () => {
+    router.push("/student-profile");
+  };
+
+  const handleCourseClick = (course: Course) => {
+    if (course.course_link) {
+      window.open(course.course_link, "_blank");
+    } else if (course.course_content) {
+      setSelectedCourse(course);
+    }
+  };
+
+  const completeCourse = async () => {
+    const token = localStorage.getItem("jwtToken");
+    if (selectedCourse && username && token) {
+      try {
+        const response = await fetch("http://127.0.0.1:5000/course/complete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            course_title: selectedCourse.course_title,
+            username: username,
+          }),
+        });
+        if (response.ok) {
+          await fetchDashboardData(token);
+          setSelectedCourse(null);
+        }
+      } catch (err) {
+        console.error("Complete course error:", err);
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("jwtToken");
+    router.push("/student-login");
+  };
+
+  const sortedCourses = courses.sort((a, b) => a.module_name.localeCompare(b.module_name));
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-gray-100">
       <motion.div
         className="w-64 bg-[#1f2937] text-white p-6 flex flex-col"
         initial={{ x: -100 }}
         animate={{ x: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Logo and Title */}
         <div className="flex flex-col items-center mb-8">
           <Button
             variant="ghost"
             className="w-24 h-24 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center mb-4"
-            onClick={() => router.push("/student-profile")}
+            onClick={handleProfileClick}
           >
             <Brain className="w-16 h-16 text-[#1f2937]" />
           </Button>
-          <h2 className="text-amber-500 text-xl font-semibold">Student@1234</h2>
+          <h2 className="text-amber-500 text-xl font-semibold">{username || "Student"}</h2>
           <Button
             variant="ghost"
             className="mt-2 text-sm text-gray-300 hover:text-white"
-            onClick={() => router.push("/student-profile")}
+            onClick={handleProfileClick}
           >
             <User className="w-4 h-4 mr-2" />
             View Profile
           </Button>
         </div>
-
-        {/* Navigation Menu */}
         <nav className="flex-1">
           <ul className="space-y-2">
             {menuItems.map((item) => (
@@ -203,82 +277,140 @@ export default function StudentDashboard() {
             ))}
           </ul>
         </nav>
+        <Button
+          onClick={handleLogout}
+          className="mt-6 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
+        >
+          <LogOut className="w-5 h-5 mr-2" />
+          Logout
+        </Button>
       </motion.div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 relative">
+        {sessions.length > 0 && (
+          <div className="absolute top-4 right-4">
+            <Button
+              onClick={() => setShowSessionPopup(true)}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white relative"
+            >
+              <Bell className="w-6 h-6" />
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {sessions.length}
+              </span>
+            </Button>
+          </div>
+        )}
+        {showSessionPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">Scheduled Sessions</h3>
+                <Button
+                  onClick={() => setShowSessionPopup(false)}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="space-y-4 max-h-60 overflow-y-auto">
+                {sessions.map((session, index) => (
+                  <div key={index} className="border-b pb-2">
+                    <p className="font-semibold text-gray-800">{session.session_title}</p>
+                    <p className="text-sm text-gray-600">Date: {session.session_date}</p>
+                    <p className="text-sm text-gray-600">Type: {session.session_type}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {activeSection === "dashboard" && (
             <>
-              {/* Dashboard Title */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">STUDENT DASHBOARD</h1>
+                <h1 className="text-3xl font-bold text-gray-800">Welcome, {username || "Student"}!</h1>
                 <div className="w-48 h-1 bg-amber-500 mt-2"></div>
               </div>
-
-              {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {[
-                  { title: "Tests Taken", value: testsTaken.toString() },
-                  { title: "Highest Score", value: "95%" },
-                  { title: "Active Time", value: "45h" },
-                ].map((stat, index) => (
-                  <motion.div
-                    key={stat.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">{stat.title}</h3>
-                        <p className="text-4xl font-bold text-gray-600">{stat.value}</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+                  <Card className="hover:shadow-lg transition-shadow bg-white border border-gray-200">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">Tests Taken</h3>
+                      <p className="text-4xl font-bold text-indigo-600">{testsTaken}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+                  <Card className="hover:shadow-lg transition-shadow bg-white border border-gray-200">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">Highest Score</h3>
+                      <p className="text-4xl font-bold text-indigo-600">{highestScore.toFixed(2)}%</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+                  <Card className="hover:shadow-lg transition-shadow bg-white border border-gray-200">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">Active Time</h3>
+                      <p className="text-4xl font-bold text-indigo-600">45h</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </div>
-
-              {/* Graph */}
-              <motion.div
-                className="bg-white p-6 rounded-lg shadow-lg"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Tests Taken</h3>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="tests"
-                        stroke="#3B82F6"
-                        strokeWidth={2}
-                        dot={{ fill: "#3B82F6", strokeWidth: 2 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </motion.div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <motion.div
+                  className="bg-white p-6 rounded-lg shadow-lg border border-gray-200"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">Tests Taken by Name</h3>
+                  <div className="h-[400px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={graphData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="test_name" stroke="#6b7280" />
+                        <YAxis stroke="#6b7280" />
+                        <Tooltip wrapperClassName="bg-white shadow-md rounded-md" />
+                        <Bar dataKey="tests" fill="#3B82F6" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </motion.div>
+                <motion.div
+                  className="bg-white p-6 rounded-lg shadow-lg border border-gray-200"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                >
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">Highest Scores by Test</h3>
+                  <div className="h-[400px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={graphData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="test_name" stroke="#6b7280" />
+                        <YAxis stroke="#6b7280" />
+                        <Tooltip wrapperClassName="bg-white shadow-md rounded-md" />
+                        <Bar dataKey="highest_score" fill="#F59E0B" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </motion.div>
+              </div>
             </>
           )}
 
           {activeSection === "assessment" && (
-            <div className="bg-white p-6 rounded-lg shadow-lg">
+            <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Assessments</h2>
               {!currentAssessment ? (
                 <div className="space-y-4">
-                  {assessments.map((assessment) => (
-                    <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
+                  {assessments.map((assessment, index) => (
+                    <Card key={index} className="hover:shadow-lg transition-shadow bg-white">
                       <CardContent className="p-6 flex justify-between items-center">
                         <div>
                           <h3 className="text-xl font-bold text-gray-800">{assessment.title}</h3>
-                          <p className="text-gray-600">{assessment.questions} questions</p>
+                          <p className="text-gray-600">{assessment.questions.length} questions</p>
                         </div>
                         <Button onClick={() => startAssessment(assessment)} className="bg-amber-500 hover:bg-amber-600">
                           Start Assessment
@@ -290,15 +422,20 @@ export default function StudentDashboard() {
               ) : (
                 <div className="space-y-6">
                   <h3 className="text-xl font-bold text-gray-800">{currentAssessment.title}</h3>
-                  {[...Array(currentAssessment.questions)].map((_, index) => (
+                  {currentAssessment.questions.map((q, index) => (
                     <div key={index} className="space-y-2">
-                      <Label htmlFor={`question-${index + 1}`}>Question {index + 1}</Label>
-                      <Input
-                        id={`question-${index + 1}`}
-                        value={answers[`question-${index + 1}`] || ""}
-                        onChange={(e) => handleAnswerChange(`question-${index + 1}`, e.target.value)}
-                        placeholder="Enter your answer"
-                      />
+                      <Label className="text-lg">{q.question}</Label>
+                      <RadioGroup
+                        value={answers[`question-${index}`] || ""}
+                        onValueChange={(value) => handleAnswerChange(`question-${index}`, value)}
+                      >
+                        {q.options.map((option, optIndex) => (
+                          <div key={optIndex} className="flex items-center space-x-2">
+                            <RadioGroupItem value={option} id={`option-${index}-${optIndex}`} />
+                            <Label htmlFor={`option-${index}-${optIndex}`}>{option}</Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
                     </div>
                   ))}
                   <Button onClick={submitAssessment} className="bg-amber-500 hover:bg-amber-600">
@@ -320,45 +457,78 @@ export default function StudentDashboard() {
                 <h2 className="text-2xl font-bold text-gray-800">Available Courses</h2>
                 <div className="w-48 h-1 bg-amber-500"></div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {courses.map((course, index) => (
-                  <motion.div
-                    key={course.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
+              {selectedCourse ? (
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-2xl font-bold text-gray-800">{selectedCourse.course_title}</h3>
+                    <Button
+                      onClick={() => setSelectedCourse(null)}
+                      className="bg-gray-500 hover:bg-gray-600 text-white"
+                    >
+                      Back to Courses
+                    </Button>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-6">Module: {selectedCourse.module_name}</p>
+                  <div className="space-y-6">
+                    {Array.isArray(selectedCourse.course_content) ? (
+                      selectedCourse.course_content.map((section, index) => (
+                        <div key={index} className="border-b border-gray-200 pb-4">
+                          <h4 className="text-xl font-semibold text-indigo-600 mb-2">
+                            {typeof section === "object" ? section.title : "Section " + (index + 1)}
+                          </h4>
+                          <pre className="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-md">
+                            {typeof section === "object" ? section.content : section}
+                          </pre>
+                        </div>
+                      ))
+                    ) : (
+                      <pre className="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-md">
+                        {selectedCourse.course_content}
+                      </pre>
+                    )}
+                  </div>
+                  <Button
+                    onClick={completeCourse}
+                    className="mt-6 bg-green-500 hover:bg-green-600 text-white w-full"
                   >
-                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
-                      <CardContent className="p-0">
-                        <div className={`${course.color} p-6 relative overflow-hidden`}>
-                          <div className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
-                            {course.lessons}x Lessons
+                    Finish Course
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {sortedCourses.map((course, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    >
+                      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-none">
+                        <CardContent className="p-6 relative">
+                          <div className="absolute top-2 right-2">
+                            {course.completed_by.includes(username || "") && (
+                              <CheckCircle className="w-6 h-6 text-green-400" />
+                            )}
                           </div>
-                          <course.icon className="w-16 h-16 text-white mb-4" />
-                          <h3 className="text-xl font-bold text-white mb-2">{course.title}</h3>
-                        </div>
-                        <div className="p-6">
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+                          <Brain className="w-12 h-12 mb-4" />
+                          <h3 className="text-xl font-bold mb-2">{course.course_title}</h3>
+                          <p className="text-sm opacity-80 mb-4">Module: {course.module_name}</p>
                           <Button
-                            className="w-full bg-amber-500 hover:bg-amber-600"
-                            onClick={() => window.open(course.url, "_blank")}
+                            onClick={() => handleCourseClick(course)}
+                            className="w-full bg-white text-indigo-600 hover:bg-indigo-100 transition-colors"
                           >
-                            View Course
+                            {course.course_content ? "Start Course" : "Go to Course"}
                           </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-
-          {/* Add other sections as needed */}
         </motion.div>
       </div>
     </div>
-  )
+  );
 }
-

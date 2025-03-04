@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from 'next/link'
@@ -16,32 +16,71 @@ export default function ForgotPassword() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const handleSubmitEmail = (e: React.FormEvent) => {
+  const handleSubmitEmail = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Simulate sending OTP
-    console.log('Sending OTP to:', email)
-    setStep(2)
-  }
-
-  const handleSubmitOtp = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Simulate OTP verification
-    if (otp === '123456') { // Example OTP
-      setStep(3)
-    } else {
-      setError('Invalid OTP')
+    try {
+      const response = await fetch('http://localhost:5000/otp/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setStep(2)
+        alert(data.message)
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to send OTP')
+      }
+    } catch (error: any) {
+      setError(error.message)
     }
   }
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleSubmitOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const response = await fetch('http://localhost:5000/otp/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setStep(3)
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Invalid or expired OTP')
+      }
+    } catch (error: any) {
+      setError(error.message)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
-    // Simulate password reset
-    console.log('Password reset for:', email)
-    router.push('/student-login')
+    try {
+      const response = await fetch('http://localhost:5000/otp/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, newPassword })
+      })
+      
+      if (response.ok) {
+        router.push('/student-login')
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to reset password')
+      }
+    } catch (error: any) {
+      setError(error.message)
+    }
   }
 
   return (
@@ -71,6 +110,7 @@ export default function ForgotPassword() {
                 required 
               />
             </div>
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
             <Button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 px-6 rounded-full shadow-lg">
               Send OTP
             </Button>
@@ -132,4 +172,3 @@ export default function ForgotPassword() {
     </motion.div>
   )
 }
-

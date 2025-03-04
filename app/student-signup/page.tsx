@@ -12,49 +12,42 @@ export default function StudentSignup() {
     username: '',
     email: '',
     password: '',
-    address: '',
-    mobile: '',
-    profilePhoto: null as File | null,
+    mobile: ''
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target
-    if (name === 'profilePhoto' && files) {
-      setFormData(prev => ({ ...prev, profilePhoto: files[0] }))
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }))
-    }
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
-    const formDataToSend = new FormData()
-    formDataToSend.append('username', formData.username)
-    formDataToSend.append('email', formData.email)
-    formDataToSend.append('password', formData.password)
-    formDataToSend.append('mobile', formData.mobile)
-    if (formData.profilePhoto) {
-      formDataToSend.append('photo', formData.profilePhoto)
-    }
+    setLoading(true)
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/signup', {
+      const response = await fetch('http://127.0.0.1:5000/auth/signup', {
         method: 'POST',
-        body: formDataToSend,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
       })
 
       const data = await response.json()
+      setLoading(false)
 
       if (response.ok) {
+        // Note: Current backend doesn't return a token, so this might need adjustment
         router.push('/student-login')
       } else {
         setError(data.message || 'Signup failed')
       }
     } catch (error) {
+      setLoading(false)
       setError('An error occurred. Please try again later.')
     }
   }
@@ -87,24 +80,17 @@ export default function StudentSignup() {
             <Input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
           </div>
           <div className="mb-4">
-            <label htmlFor="address" className="block text-gray-700 font-bold mb-2">Address</label>
-            <Input type="text" id="address" name="address" value={formData.address} onChange={handleChange} required />
-          </div>
-          <div className="mb-4">
             <label htmlFor="mobile" className="block text-gray-700 font-bold mb-2">Mobile Number</label>
             <Input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
           </div>
-          <div className="mb-6">
-            <label htmlFor="profilePhoto" className="block text-gray-700 font-bold mb-2">Profile Photo (JPG or PNG)</label>
-            <Input type="file" id="profilePhoto" name="profilePhoto" accept=".jpg,.jpeg,.png" onChange={handleChange} required />
-          </div>
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 px-6 rounded-full shadow-lg">
-              Sign Up
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 px-6 rounded-full shadow-lg"
+              disabled={loading}
+            >
+              {loading ? 'Signing Up...' : 'Sign Up'}
             </Button>
           </motion.div>
         </form>
