@@ -20,8 +20,9 @@ import {
   Bell,
   LogOut,
   X,
+  Wrench,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,7 @@ const menuItems = [
   { name: "Assessment", icon: FileQuestion, active: false },
   { name: "Learning", icon: BookOpen, active: false },
   { name: "Community", icon: Users, active: false },
+  { name: "Tools", icon: Wrench, active: false },
 ];
 
 interface Assessment {
@@ -59,6 +61,13 @@ interface GraphData {
   tests: number;
   highest_score: number;
 }
+
+const toolItems = [
+  { name: "Mock Interviews", icon: MessageSquare, route: "/interview" },
+  { name: "Resume ATS Score", icon: Shield, route: "/resume-ats-score" },
+  { name: "Model Prediction", icon: Brain, route: "/career-form-1" },
+  { name: "Resume Creation", icon: FileQuestion, route: "/resume-creation" },
+];
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -225,6 +234,10 @@ export default function StudentDashboard() {
     }
   };
 
+  const handleToolClick = (route: string) => {
+    router.push(route);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("jwtToken");
     router.push("/student-login");
@@ -249,14 +262,6 @@ export default function StudentDashboard() {
             <Brain className="w-16 h-16 text-[#1f2937]" />
           </Button>
           <h2 className="text-amber-500 text-xl font-semibold">{username || "Student"}</h2>
-          <Button
-            variant="ghost"
-            className="mt-2 text-sm text-gray-300 hover:text-white"
-            onClick={handleProfileClick}
-          >
-            <User className="w-4 h-4 mr-2" />
-            View Profile
-          </Button>
         </div>
         <nav className="flex-1">
           <ul className="space-y-2">
@@ -266,11 +271,11 @@ export default function StudentDashboard() {
                   onClick={() => setActiveSection(item.name.toLowerCase())}
                   className={`flex items-center w-full p-3 rounded-lg transition-colors ${
                     activeSection === item.name.toLowerCase()
-                      ? "bg-amber-500 text-white"
+                      ? "bg-amber-500 text-orange"
                       : "text-gray-300 hover:bg-gray-700"
                   }`}
                 >
-                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.icon && <item.icon className="w-5 h-5 mr-3" />}
                   {item.name}
                 </button>
               </li>
@@ -503,7 +508,7 @@ export default function StudentDashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
-                      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-none">
+                      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full bg-gradient-to-br from-orange-500 to-amber-600 text-white border-none">
                         <CardContent className="p-6 relative">
                           <div className="absolute top-2 right-2">
                             {course.completed_by.includes(username || "") && (
@@ -525,6 +530,49 @@ export default function StudentDashboard() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeSection === "tools" && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Tools</h2>
+                <div className="w-48 h-1 bg-amber-500"></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {toolItems.map((tool, index) => (
+                  <motion.div
+                    key={tool.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <Card className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-none">
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                      <CardContent className="p-6 relative z-10">
+                        <div className="flex justify-center mb-4">
+                          <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-full shadow-md">
+                            <tool.icon className="w-8 h-8 text-white" />
+                          </div>
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-800 text-center mb-3">{tool.name}</h3>
+                        <p className="text-sm text-gray-500 text-center mb-4">
+                          {tool.name === "Mock Interviews" && "Practice your interview skills"}
+                          {tool.name === "Resume ATS Score" && "Optimize your resume for ATS"}
+                          {tool.name === "Model Prediction" && "Predict your career path"}
+                          {tool.name === "Resume Creation" && "Build a professional resume"}
+                        </p>
+                        <Button
+                          onClick={() => handleToolClick(tool.route)}
+                          className="w-full bg-gradient-to-r from-orange-600 to-amber-600 text-white hover:from-orange-700 hover:to-amber-700 transition-all duration-300 rounded-full py-2 shadow-md"
+                        >
+                          Launch Tool
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           )}
         </motion.div>

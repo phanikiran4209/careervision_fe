@@ -133,7 +133,7 @@ export default function StudentProfile() {
         if (isFirstSave) {
           setTimeout(() => {
             setSuccess("");
-            router.push("/student-dashboard");
+            router.push("/career-choice");
           }, 1500);
         } else {
           setTimeout(() => setSuccess(""), 3000);
