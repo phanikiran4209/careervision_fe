@@ -64,9 +64,9 @@ interface GraphData {
 
 const toolItems = [
   { name: "Mock Interviews", icon: MessageSquare, route: "/interview" },
-  { name: "Resume ATS Score", icon: Shield, route: "/resume-ats-score" },
+  { name: "Resume ATS Score", icon: Shield, route: "/ats-score" },
   { name: "Model Prediction", icon: Brain, route: "/career-form-1" },
-  { name: "Resume Creation", icon: FileQuestion, route: "/resume-creation" },
+  { name: "Resume Creation", icon: FileQuestion, route: "/template" },
 ];
 
 export default function StudentDashboard() {
