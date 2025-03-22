@@ -33,7 +33,6 @@ const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, active: true },
   { name: "Assessment", icon: FileQuestion, active: false },
   { name: "Learning", icon: BookOpen, active: false },
-  { name: "Community", icon: Users, active: false },
   { name: "Tools", icon: Wrench, active: false },
 ];
 

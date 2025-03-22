@@ -51,9 +51,7 @@ interface GraphData {
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, active: true },
-  { name: "Student Statistics", icon: Users, active: false },
   { name: "Manage Questions", icon: FileQuestion, active: false },
-  { name: "Community", icon: Users2, active: false },
   { name: "Courses", icon: GraduationCap, active: false },
   { name: "Scheduling Calendar", icon: Calendar, active: false },
 ];
