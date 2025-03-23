@@ -39,9 +39,9 @@ export default function Assessments({
     setScore(null);
   };
 
-  const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-    setAnswers((prev: Record<string, string>) => ({ ...prev, [questionId]: answer }));
+  // const handleAnswerChange = (questionId: string, answer: string) => {
+  //   setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  //   setAnswers((prev: Record<string, string>) => ({ ...prev, [questionId]: answer }));
 
   const submitAssessment = async () => {
     if (currentAssessment) {
@@ -109,7 +109,7 @@ export default function Assessments({
               <Label className="text-lg">{q.question}</Label>
               <RadioGroup
                 value={answers[`question-${index}`] || ""}
-                onValueChange={(value) => handleAnswerChange(`question-${index}`, value)}
+                // onValueChange={(value) => handleAnswerChange(`question-${index}`, value)}
               >
                 {q.options.map((option, optIndex) => (
                   <div key={optIndex} className="flex items-center space-x-2">
@@ -132,4 +132,3 @@ export default function Assessments({
       )}
     </div>
   );}
-}

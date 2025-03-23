@@ -223,7 +223,7 @@ export default function StudentLogin() {
               </Link>
             </div>
             <div className="mt-4 text-center">
-              <p className="text-gray-600">Don't have an account?</p>
+              <p className="text-gray-600">Do not have an account?</p>
               <Link href="/student-signup" className="text-[#f59e0b] hover:text-[#FFD700] font-bold">
                 Sign up now
               </Link>

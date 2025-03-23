@@ -19,16 +19,16 @@ export default function ForgotPassword() {
   const handleSubmitEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:5000/otp/send-otp', {
+      const response = await fetch(`$process.env.NEXT_PUBLIC_API_BASE_URL/otp/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       })
       
       if (response.ok) {
-        const data = await response.json()
+        await response.json()
         setStep(2)
-        alert(data.message)
+        //alert(data.message)
       } else {
         const data = await response.json()
         setError(data.error || 'Failed to send OTP')
@@ -45,7 +45,7 @@ export default function ForgotPassword() {
   const handleSubmitOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:5000/otp/verify-otp', {
+      const response = await fetch(`$process.env.NEXT_PUBLIC_API_BASE_URL/otp/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp })
@@ -58,8 +58,8 @@ export default function ForgotPassword() {
         const data = await response.json()
         setError(data.error || 'Invalid or expired OTP')
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      //setError(error.message)
     }
   }
 
@@ -70,7 +70,7 @@ export default function ForgotPassword() {
       return
     }
     try {
-      const response = await fetch('http://localhost:5000/otp/reset-password', {
+      const response = await fetch(`$process.env.NEXT_PUBLIC_API_BASE_URL/otp/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, newPassword })

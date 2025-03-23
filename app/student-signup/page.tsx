@@ -14,8 +14,7 @@ export default function StudentSignup() {
     password: '',
     mobile: ''
   })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState('')
+  const [error, setError] = useState('') // Used in JSX
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -42,10 +41,9 @@ export default function StudentSignup() {
       setLoading(false)
 
       if (response.ok) {
-        // Note: Current backend doesn't return a token, so this might need adjustment
-        router.push('/student-login')
+        router.push('/student-login') // Redirect on successful signup
       } else {
-        setError(data.message || 'Signup failed')
+        setError(data.message || 'Signup failed. Please try again.')
       }
     } catch (error) {
       setLoading(false)
@@ -84,7 +82,14 @@ export default function StudentSignup() {
             <label htmlFor="mobile" className="block text-gray-700 font-bold mb-2">Mobile Number</label>
             <Input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
           </div>
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+          {/* Display error message if there's an error */}
+          {error && (
+            <p className="text-red-500 text-sm mb-4 text-center" aria-live="polite">
+              {error}
+            </p>
+          )}
+
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button 
               type="submit" 
@@ -95,6 +100,7 @@ export default function StudentSignup() {
             </Button>
           </motion.div>
         </form>
+
         <div className="mt-6 text-center">
           <p className="text-gray-600">Already have an account?</p>
           <Link href="/student-login" className="text-amber-600 hover:text-amber-700 font-bold">Log in</Link>

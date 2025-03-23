@@ -10,6 +10,15 @@ if (!API_KEY) console.error("Gemini API key is not defined in .env file");
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 const model = genAI ? genAI.getGenerativeModel({ model: "gemini-1.5-flash" }) : null;
 
+interface Evaluation {
+  feedback: string;
+  rating: number;
+}
+
+interface EvaluationResponse {
+  evaluation: Evaluation;
+}
+
 export default function Interview() {
   const [jobRole, setJobRole] = useState("");
   const [jobDescription, setJobDescription] = useState("");
@@ -20,7 +29,7 @@ export default function Interview() {
   const [questions, setQuestions] = useState<string[]>([]);
   const [responses, setResponses] = useState<string[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [feedback, setFeedback] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<Evaluation[]>([]);
   const [score, setScore] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [transcript, setTranscript] = useState("");
@@ -126,11 +135,6 @@ export default function Interview() {
     }
   };
 
-  interface Evaluation {
-    feedback: string;
-    rating: number;
-  }
-
   const evaluateResponseWithDeepSeek = async (question: string, response: string): Promise<Evaluation> => {
     try {
       const res = await fetch("/interview/evaluate-response", {
@@ -151,7 +155,7 @@ export default function Interview() {
         throw new Error(`HTTP error! Status: ${res.status}`);
       }
 
-      const data = await res.json();
+      const data: EvaluationResponse = await res.json();
       return data.evaluation;
     } catch (error) {
       console.error("Error evaluating response:", error);
@@ -189,7 +193,7 @@ export default function Interview() {
       setResponses(updatedResponses);
 
       const evaluation = await evaluateResponseWithDeepSeek(questions[currentQuestionIndex], transcript.trim());
-      setFeedback((prev) => [...prev, evaluation.feedback]);
+      setFeedback((prev) => [...prev, evaluation]);
 
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -322,7 +326,7 @@ export default function Interview() {
                           <h4 className="text-xl font-semibold text-gray-800 mb-4">Feedback</h4>
                           <ul className="space-y-3 text-gray-700">
                             {feedback.map((fb, index) => (
-                              <li key={index} className="p-3 bg-white rounded-lg shadow-sm">{fb}</li>
+                              <li key={index} className="p-3 bg-white rounded-lg shadow-sm">{fb.feedback}</li>
                             ))}
                           </ul>
                         </div>
@@ -357,7 +361,7 @@ export default function Interview() {
                   onClick={() => {
                     setIsSubmitted(false);
                     document.exitFullscreen();
-                    router.push("/interview");
+                    router.push("/interviews");
                   }}
                   className="w-full bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition font-semibold mt-4"
                 >
