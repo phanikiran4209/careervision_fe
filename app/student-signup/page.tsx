@@ -83,9 +83,9 @@ export default function StudentSignup() {
             <Input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
           </div>
 
-          {_error && (  // Changed 'error' to '_error' here
+          {_error && (
             <p className="text-red-500 text-sm mb-4 text-center" aria-live="polite">
-              {_error}  // Changed 'error' to '_error' here
+              {_error}
             </p>
           )}
 
