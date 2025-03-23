@@ -40,7 +40,7 @@ export default function StudentSignup() {
       if (response.ok) {
         router.push('/student-login')
       }
-    } catch (error) {
+    } catch  {
       setLoading(false)
     }
   }
