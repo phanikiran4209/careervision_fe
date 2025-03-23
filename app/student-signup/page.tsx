@@ -14,7 +14,6 @@ export default function StudentSignup() {
     password: '',
     mobile: ''
   })
-  const [_error, setError] = useState('') // Changed 'error' to '_error'
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -25,7 +24,6 @@ export default function StudentSignup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
@@ -37,17 +35,13 @@ export default function StudentSignup() {
         body: JSON.stringify(formData)
       })
 
-      const data = await response.json()
       setLoading(false)
 
       if (response.ok) {
         router.push('/student-login')
-      } else {
-        setError(data.message || 'Signup failed. Please try again.')
       }
     } catch (error) {
       setLoading(false)
-      setError('An error occurred. Please try again later.')
     }
   }
 
@@ -82,12 +76,6 @@ export default function StudentSignup() {
             <label htmlFor="mobile" className="block text-gray-700 font-bold mb-2">Mobile Number</label>
             <Input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
           </div>
-
-          {_error && (
-            <p className="text-red-500 text-sm mb-4 text-center" aria-live="polite">
-              {_error}
-            </p>
-          )}
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button 
