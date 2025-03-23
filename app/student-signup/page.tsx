@@ -14,8 +14,7 @@ export default function StudentSignup() {
     password: '',
     mobile: ''
   })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState('')
+  const [_error, setError] = useState('') // Changed 'error' to '_error'
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -84,9 +83,9 @@ export default function StudentSignup() {
             <Input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
           </div>
 
-          {error && (
+          {_error && (  // Changed 'error' to '_error' here
             <p className="text-red-500 text-sm mb-4 text-center" aria-live="polite">
-              {error}
+              {_error}  // Changed 'error' to '_error' here
             </p>
           )}
 
