@@ -45,7 +45,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Toast({ id, title, description, variant = "default", onDismiss }: Toast & { onDismiss: () => void }) {
+function Toast({ title, description, variant = "default", onDismiss }: Toast & { onDismiss: () => void }) {
   useEffect(() => {
     const timer = setTimeout(() => onDismiss(), 5000)
     return () => clearTimeout(timer)

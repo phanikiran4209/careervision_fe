@@ -230,7 +230,7 @@ export default function StudentLogin() {
             </div>
             <div className="mt-4 text-center">
               <Link href="/chosen" className="text-gray-600 hover:text-[#f59e0b]">
-                ← Back to login selection
+                &larr; Back to login selection
               </Link>
             </div>
           </>

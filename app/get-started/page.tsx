@@ -46,7 +46,7 @@ export default function GetStartedPage() {
               </Link>
             </motion.div>
             <div className="hidden md:flex space-x-1">
-              {["Home", "Contact", "Login"].map((item, index) => (
+              {["Home", "Contact", "Login"].map((item ) => (
                 <motion.div key={item} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                   <Link
                     href={item === "Home" ? "/" : `/${item.toLowerCase()}`}

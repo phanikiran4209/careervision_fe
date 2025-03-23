@@ -24,7 +24,7 @@ export default function RoadmapPage() {
   const { toast } = useToast()
   const [roadmapData, setRoadmapData] = useState<RoadmapResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [token, setToken] = useState<string | null>(null)
+  const [, setToken] = useState<string | null>(null)
   const [isRoadmapVisible, setIsRoadmapVisible] = useState(false)
   const [hasShownToast, setHasShownToast] = useState(false) // Track if toast has been shown
 
@@ -93,7 +93,7 @@ export default function RoadmapPage() {
           })
           setHasShownToast(true) // Mark toast as shown
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching roadmap:", error)
         toast({
           id: "roadmap-error-fetch",
@@ -109,7 +109,7 @@ export default function RoadmapPage() {
     }
 
     fetchRoadmap()
-  }, [career, router, toast]) // Removed hasShownToast from dependencies to prevent re-fetching
+  }, [career, router, toast, hasShownToast])
 
   // Animation variants
   const containerVariants = {
@@ -204,7 +204,7 @@ export default function RoadmapPage() {
               {/* Vertical Timeline Line */}
               <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-purple-500" />
 
-              {roadmapData.roadmap.map((item, index) => (
+              {roadmapData.roadmap.map((item) => (
                 <motion.div
                   key={item.category}
                   variants={cardVariants}

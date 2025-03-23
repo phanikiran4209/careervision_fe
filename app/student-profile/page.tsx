@@ -58,7 +58,7 @@ export default function StudentProfile() {
             skills: profileData.profile.skills || [],
             achievements: profileData.profile.achievements || [],
             profile_photo: null,
-            certificate_names: profileData.profile.certificates.map((c: any) => c.name) || [],
+            certificate_names: profileData.profile.certificates.map((c: { name: string }) => c.name) || [],
             certificates: [],
           })
           setIsFirstSave(false)

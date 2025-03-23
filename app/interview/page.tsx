@@ -126,7 +126,12 @@ export default function Interview() {
     }
   };
 
-  const evaluateResponseWithDeepSeek = async (question: string, response: string) => {
+  interface Evaluation {
+    feedback: string;
+    rating: number;
+  }
+
+  const evaluateResponseWithDeepSeek = async (question: string, response: string): Promise<Evaluation> => {
     try {
       const res = await fetch("/interview/evaluate-response", {
         method: "POST",

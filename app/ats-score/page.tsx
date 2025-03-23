@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent } from "react";
-import { FaUpload, FaSpinner } from "react-icons/fa";
+import { FaSpinner } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 interface AnalysisResult {
@@ -68,7 +68,7 @@ const ATSScorePage: React.FC = () => {
         try {
           const errorData = JSON.parse(responseText);
           throw new Error(errorData.error || "Failed to analyze resume");
-        } catch (jsonErr) {
+        } catch {
           throw new Error("Non-JSON response from backend: " + responseText);
         }
       }

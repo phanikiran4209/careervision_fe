@@ -14,6 +14,7 @@ export default function StudentSignup() {
     password: '',
     mobile: ''
   })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()

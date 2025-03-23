@@ -89,21 +89,26 @@ export default function CareerForm1() {
       setPrediction(data.prediction)
       setIsDialogOpen(true)
       toast({
-        id: "prediction-success", // Unique ID to prevent stacking
+        // Unique ID to prevent stacking
         title: "Success",
         description: "Career prediction generated!",
         variant: "success",
-        duration: 3000,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error during prediction:", error)
-      toast({
-        id: "prediction-error",
-        title: "Error",
-        description: error.message || "Something went wrong",
-        variant: "destructive",
-        duration: 3000,
-      })
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message || "Something went wrong",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Something went wrong",
+          variant: "destructive",
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -227,8 +232,7 @@ export default function CareerForm1() {
               <div key={skill}>
                 <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">{skill}</label>
                 <Select
-                  value={formData[skill]}
-                  onValueChange={(value) => setFormData({ ...formData, [skill]: value })}
+                  value={formData[skill as keyof typeof formData]}
                   required
                 >
                   <SelectTrigger className="bg-gray-50 text-gray-900 border-gray-300 focus:ring-2 focus:ring-orange-500">

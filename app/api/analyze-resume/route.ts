@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(responseText.replace(/'/g, '"'));
-    } catch (jsonErr) {
+    } catch {
       console.error("Invalid JSON from Gemini API:", responseText);
       return NextResponse.json({ error: "Invalid response from analysis service" }, { status: 500 });
     }

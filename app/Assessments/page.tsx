@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -42,7 +41,7 @@ export default function Assessments({
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-  };
+    setAnswers((prev: Record<string, string>) => ({ ...prev, [questionId]: answer }));
 
   const submitAssessment = async () => {
     if (currentAssessment) {
@@ -132,5 +131,5 @@ export default function Assessments({
         </div>
       )}
     </div>
-  );
+  );}
 }

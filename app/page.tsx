@@ -82,7 +82,7 @@ export default function GetStartedPage() {
               </Link>
             </motion.div>
             <div className="hidden md:flex space-x-1">
-              {["Home", "About", "Services", "Contact", "Login"].map((item, index) => (
+              {["Home", "About", "Services", "Contact", "Login"].map((item) => (
                 <motion.div key={item} variants={itemVariants}>
                   <Link
                     href={item === "Home" ? "/" : `/${item.toLowerCase()}`}
@@ -179,7 +179,7 @@ export default function GetStartedPage() {
       >
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Take the Next Step?</h2>
-          <p className="text-xl mb-8">Join thousands of professionals who've transformed their careers with CareerVISION</p>
+          <p className="text-xl mb-8">Join thousands of professionals who&apos;ve transformed their careers with CareerVISION</p>
           <motion.div whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}>
             <Button
               onClick={handleGetStarted}

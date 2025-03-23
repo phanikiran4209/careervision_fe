@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from 'next/link'
@@ -13,7 +13,7 @@ export default function ForgotPassword() {
   const [otp, setOtp] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState<string | undefined>('')
   const router = useRouter()
 
   const handleSubmitEmail = async (e: React.FormEvent) => {
@@ -33,8 +33,12 @@ export default function ForgotPassword() {
         const data = await response.json()
         setError(data.error || 'Failed to send OTP')
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('An unknown error occurred')
+      }
     }
   }
 
