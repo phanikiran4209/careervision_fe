@@ -14,7 +14,8 @@ export default function StudentSignup() {
     password: '',
     mobile: ''
   })
-  const [error, setError] = useState('') // Used in JSX
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -41,7 +42,7 @@ export default function StudentSignup() {
       setLoading(false)
 
       if (response.ok) {
-        router.push('/student-login') // Redirect on successful signup
+        router.push('/student-login')
       } else {
         setError(data.message || 'Signup failed. Please try again.')
       }
@@ -83,7 +84,6 @@ export default function StudentSignup() {
             <Input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
           </div>
 
-          {/* Display error message if there's an error */}
           {error && (
             <p className="text-red-500 text-sm mb-4 text-center" aria-live="polite">
               {error}
