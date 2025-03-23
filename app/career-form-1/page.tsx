@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,7 +20,7 @@ export default function CareerForm1() {
     projects: "",
     python: "",
     sql: "",
-    java: ""
+    java: "",
   })
   const [loading, setLoading] = useState(false)
   const [prediction, setPrediction] = useState<string | null>(null)
@@ -36,81 +36,94 @@ export default function CareerForm1() {
 
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, staggerChildren: 0.1 } }
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
   }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   }
 
   const dialogVariants = {
     hidden: { opacity: 0, y: "-50%", scale: 0.9 },
-    visible: { opacity: 1, y: "-50%", scale: 1, transition: { duration: 0.4, ease: "easeOut" } }
+    visible: { opacity: 1, y: "-50%", scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
+    exit: { opacity: 0, y: "-60%", scale: 0.8, transition: { duration: 0.3, ease: "easeIn" } },
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setPrediction(null);
+    e.preventDefault()
+    setLoading(true)
+    setPrediction(null)
 
     try {
-      console.log("Current token before fetch:", token);
+      console.log("Current token before fetch:", token)
       if (!token) {
-        throw new Error("Please login first. No token found.");
+        throw new Error("Please login first. No token found.")
       }
 
-      const response = await fetch("http://localhost:5000/prediction/predict_career", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/prediction/predict_career`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
-          "Gender": formData.gender,
-          "Age": Number(formData.age),
-          "GPA": Number(formData.gpa),
-          "Major": formData.major,
+          Gender: formData.gender,
+          Age: Number(formData.age),
+          GPA: Number(formData.gpa),
+          Major: formData.major,
           "Interested Domain": formData.interestedDomain,
-          "Projects": formData.projects,
-          "Python": formData.python,
-          "SQL": formData.sql,
-          "Java": formData.java
+          Projects: formData.projects,
+          Python: formData.python,
+          SQL: formData.sql,
+          Java: formData.java,
         }),
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit career data");
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to submit career data")
       }
 
-      const data = await response.json();
-      setPrediction(data.prediction);
-      setIsDialogOpen(true);
+      const data = await response.json()
+      setPrediction(data.prediction)
+      setIsDialogOpen(true)
       toast({
+        id: "prediction-success", // Unique ID to prevent stacking
         title: "Success",
         description: "Career prediction generated!",
         variant: "success",
-      });
+        duration: 3000,
+      })
     } catch (error: any) {
-      console.error("Error during prediction:", error);
+      console.error("Error during prediction:", error)
       toast({
+        id: "prediction-error",
         title: "Error",
         description: error.message || "Something went wrong",
         variant: "destructive",
-      });
+        duration: 3000,
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleRoadmapClick = () => {
-    router.push("/roadmap");
-  };
+    if (prediction) {
+      setIsDialogOpen(false)
+      setTimeout(() => {
+        router.push(`/roadmap?career=${encodeURIComponent(prediction)}`)
+      }, 300)
+    }
+  }
 
   const handleBackToDashboard = () => {
-    router.push("/student-dashboard");
-  };
+    setIsDialogOpen(false)
+    setTimeout(() => {
+      router.push("/student-dashboard")
+    }, 300)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-6">
@@ -124,7 +137,9 @@ export default function CareerForm1() {
           <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight">
             Shape Your Career Path
           </h1>
-          <p className="text-gray-600 mt-3 text-lg">Unlock personalized career insights with your details</p>
+          <p className="text-gray-600 mt-3 text-lg">
+            Unlock personalized career insights with your details
+          </p>
         </motion.div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -251,44 +266,45 @@ export default function CareerForm1() {
         </form>
       </motion.div>
 
-      {isDialogOpen && prediction && (
-        <motion.div
-          variants={dialogVariants}
-          initial="hidden"
-          animate="visible"
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
-          style={{ transform: "translateY(-50%)", top: "50%" }}
-        >
-          <div className="w-full max-w-2xl bg-gradient-to-br from-gray-800 to-gray-900 p-10 rounded-2xl shadow-2xl border border-amber-500/30">
-            <h2 className="text-4xl font-bold text-white mb-6 text-center">Your Career Prediction</h2>
-            <div className="bg-white/10 p-6 rounded-lg text-center">
-              <p className="text-3xl font-semibold text-amber-300 tracking-wide">
-                {prediction}
-              </p>
+      <AnimatePresence>
+        {isDialogOpen && prediction && (
+          <motion.div
+            variants={dialogVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
+            style={{ transform: "translateY(-50%)", top: "50%" }}
+          >
+            <div className="w-full max-w-2xl bg-gradient-to-br from-gray-800 to-gray-900 p-10 rounded-2xl shadow-2xl border border-amber-500/30">
+              <h2 className="text-4xl font-bold text-white mb-6 text-center">Your Career Prediction</h2>
+              <div className="bg-white/10 p-6 rounded-lg text-center">
+                <p className="text-3xl font-semibold text-amber-300 tracking-wide">{prediction}</p>
+              </div>
+              <div className="flex justify-center mt-8 space-x-4">
+                <Button
+                  onClick={() => setIsDialogOpen(false)}
+                  className="bg-gray-700 text-white hover:bg-gray-600 transition-all duration-300"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={handleRoadmapClick}
+                  className="bg-orange-600 text-white hover:bg-orange-700 transition-all duration-300"
+                >
+                  View Roadmap
+                </Button>
+                <Button
+                  onClick={handleBackToDashboard}
+                  className="bg-orange-600 text-white hover:bg-orange-700 transition-all duration-300"
+                >
+                  Back to Dashboard
+                </Button>
+              </div>
             </div>
-            <div className="flex justify-center mt-8 space-x-4">
-              <Button
-                onClick={() => setIsDialogOpen(false)}
-                className="bg-gray-700 text-white hover:bg-gray-600 transition-all duration-300"
-              >
-                Close
-              </Button>
-              <Button
-                onClick={handleRoadmapClick}
-                className="bg-orange-600 text-white hover:bg-orange-700 transition-all duration-300"
-              >
-                View Roadmap
-              </Button>
-              <Button
-                onClick={handleBackToDashboard}
-                className="bg-orange-600 text-white hover:bg-orange-700 transition-all duration-300"
-              >
-                Back to Dashboard
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  );
+  )
 }

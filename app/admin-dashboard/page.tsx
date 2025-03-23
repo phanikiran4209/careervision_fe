@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Users,
   FileQuestion,
-  Users2,
   GraduationCap,
   Calendar,
   BookOpen,
@@ -89,7 +88,7 @@ export default function AdminDashboard() {
 
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/admin/dashboard", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/dashboard`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -109,7 +108,7 @@ export default function AdminDashboard() {
 
     const fetchAssessments = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/admin/assessments", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/assessments`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -127,7 +126,7 @@ export default function AdminDashboard() {
 
     const fetchCourses = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/admin/courses", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/courses`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -148,7 +147,7 @@ export default function AdminDashboard() {
 
     const fetchSessions = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/admin/sessions", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/sessions`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -191,7 +190,7 @@ export default function AdminDashboard() {
     formData.append("pdf_file", assessmentFile);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/admin/upload-assessment", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/upload-assessment`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -202,7 +201,7 @@ export default function AdminDashboard() {
         setAssessmentTitle("");
         setAssessmentFile(null);
         alert("Assessment uploaded successfully!");
-        const dashboardResponse = await fetch("http://127.0.0.1:5000/admin/dashboard", {
+        const dashboardResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/dashboard`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -239,7 +238,7 @@ export default function AdminDashboard() {
     if (courseFile) formData.append("course_material", courseFile);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/admin/upload-course", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/upload-course`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -282,7 +281,7 @@ export default function AdminDashboard() {
     };
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/admin/schedule-session", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/schedule-session`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

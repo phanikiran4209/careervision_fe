@@ -21,7 +21,6 @@ const ATSScorePage: React.FC = () => {
   const handleJobDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setJobDescription(e.target.value);
   };
-
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type === "application/pdf") {
@@ -56,7 +55,7 @@ const ATSScorePage: React.FC = () => {
       formData.append("job_description", jobDescription);
 
       console.log("Sending request to Flask...");
-      const response = await fetch("http://127.0.0.1:5000/ats/analyze-resume", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/ats/analyze-resume`, {
         method: "POST",
         body: formData,
       });

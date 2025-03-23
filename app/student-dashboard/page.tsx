@@ -24,10 +24,8 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useRouter } from "next/navigation";
+import Assessments from "./Assessments";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, active: true },
@@ -61,13 +59,6 @@ interface GraphData {
   highest_score: number;
 }
 
-const toolItems = [
-  { name: "Mock Interviews", icon: MessageSquare, route: "/interview" },
-  { name: "Resume ATS Score", icon: Shield, route: "/ats-score" },
-  { name: "Model Prediction", icon: Brain, route: "/career-form-1" },
-  { name: "Resume Creation", icon: FileQuestion, route: "/template" },
-];
-
 export default function StudentDashboard() {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -83,10 +74,13 @@ export default function StudentDashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showSessionPopup, setShowSessionPopup] = useState(false);
+  const [loading, setLoading] = useState(true); // Initial loading state
+  const [actionLoading, setActionLoading] = useState(false); // Loading state for actions (Launch Tool, Profile)
+  const [loadingMessage, setLoadingMessage] = useState("CareerVision Loading..."); // Dynamic loading message
 
   const fetchDashboardData = async (token: string) => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/dashboard/student", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/dashboard/student`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -112,92 +106,65 @@ export default function StudentDashboard() {
       return;
     }
 
-    const fetchProfile = async () => {
+    const fetchData = async () => {
+      const startTime = Date.now(); // Record the start time of the requests
+
       try {
-        const response = await fetch("http://127.0.0.1:5000/profile/get", {
+        // Fetch Profile
+        const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/profile/get`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
-        if (response.ok && data.exists) {
-          setUsername(data.profile.username);
+        const profileData = await profileResponse.json();
+        if (profileResponse.ok && profileData.exists) {
+          setUsername(profileData.profile.username);
         }
-      } catch (err) {
-        console.error("Fetch profile error:", err);
-      }
-    };
 
-    const fetchAssessments = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:5000/admin/assessments", {
+        // Fetch Assessments
+        const assessmentsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/assessments`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
-        if (response.ok) {
-          setAssessments(data.assessments);
+        const assessmentsData = await assessmentsResponse.json();
+        if (assessmentsResponse.ok) {
+          setAssessments(assessmentsData.assessments);
         }
+
+        // Fetch Dashboard Data
+        await fetchDashboardData(token);
+
       } catch (err) {
-        console.error("Fetch assessments error:", err);
+        console.error("Fetch error:", err);
+      } finally {
+        // Calculate the elapsed time
+        const elapsedTime = Date.now() - startTime;
+        const minimumLoadingTime = 1000; // Minimum 1 second for the initial loading animation
+
+        // Ensure the loading animation runs for at least the minimum time
+        const remainingTime = Math.max(0, minimumLoadingTime - elapsedTime);
+        setTimeout(() => {
+          setLoading(false); // Set loading to false after the minimum time
+        }, remainingTime);
       }
     };
 
-    fetchProfile();
-    fetchAssessments();
-    fetchDashboardData(token);
+    fetchData();
   }, [router]);
 
-  const startAssessment = (assessment: Assessment) => {
-    setCurrentAssessment(assessment);
-    setAnswers({});
-    setScore(null);
-  };
+  const handleProfileClick = async () => {
+    setActionLoading(true);
+    setLoadingMessage("Opening Profile..."); // Set loading message for profile action
 
-  const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-  };
+    // Simulate navigation response time (e.g., 3 seconds)
+    const navigationTime = 3000; // Set to 3 seconds for testing; adjust based on actual navigation time
+    await new Promise((resolve) => setTimeout(resolve, navigationTime)); // Simulate the navigation delay
 
-  const submitAssessment = async () => {
-    if (currentAssessment) {
-      const token = localStorage.getItem("jwtToken");
-      const totalQuestions = currentAssessment.questions.length;
-      let correctAnswers = 0;
-
-      currentAssessment.questions.forEach((q, index) => {
-        if (answers[`question-${index}`] === q.correct_answer) {
-          correctAnswers++;
-        }
-      });
-
-      const calculatedScore = (correctAnswers / totalQuestions) * 100;
-      setScore(calculatedScore);
-
-      const assessmentData = {
-        username,
-        assessment_id: currentAssessment.title,
-        score: calculatedScore,
-        date: new Date().toISOString(),
-      };
-      try {
-        const response = await fetch("http://127.0.0.1:5000/assessment/submit", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(assessmentData),
-        });
-        if (response.ok) {
-          await fetchDashboardData(token);
-        }
-      } catch (err) {
-        console.error("Submit assessment error:", err);
-      }
-    }
-  };
-
-  const handleProfileClick = () => {
     router.push("/student-profile");
+
+    // Set the loading animation duration to match the navigation time
+    setTimeout(() => {
+      setActionLoading(false); // Stop the loading animation after the exact navigation time
+    }, navigationTime);
   };
 
   const handleCourseClick = (course: Course) => {
@@ -212,7 +179,7 @@ export default function StudentDashboard() {
     const token = localStorage.getItem("jwtToken");
     if (selectedCourse && username && token) {
       try {
-        const response = await fetch("http://127.0.0.1:5000/course/complete", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/course/complete`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -233,8 +200,20 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleToolClick = (route: string) => {
+  const handleToolClick = async (route: string) => {
+    setActionLoading(true);
+    setLoadingMessage("Launching..."); // Set loading message for tool launch
+
+    // Simulate navigation response time (e.g., 3 seconds)
+    const navigationTime = 3000; // Set to 3 seconds for testing; adjust based on actual navigation time
+    await new Promise((resolve) => setTimeout(resolve, navigationTime)); // Simulate the navigation delay
+
     router.push(route);
+
+    // Set the loading animation duration to match the navigation time
+    setTimeout(() => {
+      setActionLoading(false); // Stop the loading animation after the exact navigation time
+    }, navigationTime);
   };
 
   const handleLogout = () => {
@@ -245,9 +224,12 @@ export default function StudentDashboard() {
   const sortedCourses = courses.sort((a, b) => a.module_name.localeCompare(b.module_name));
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="relative flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
       <motion.div
-        className="w-64 bg-[#1f2937] text-white p-6 flex flex-col"
+        className={`w-64 bg-[#1f2937] text-white p-6 flex flex-col transition-all duration-300 ${
+          loading || actionLoading ? "blur-sm" : ""
+        }`}
         initial={{ x: -100 }}
         animate={{ x: 0 }}
         transition={{ duration: 0.5 }}
@@ -257,6 +239,7 @@ export default function StudentDashboard() {
             variant="ghost"
             className="w-24 h-24 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center mb-4"
             onClick={handleProfileClick}
+            disabled={loading || actionLoading}
           >
             <Brain className="w-16 h-16 text-[#1f2937]" />
           </Button>
@@ -272,7 +255,8 @@ export default function StudentDashboard() {
                     activeSection === item.name.toLowerCase()
                       ? "bg-amber-500 text-orange"
                       : "text-gray-300 hover:bg-gray-700"
-                  }`}
+                  } ${loading || actionLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled={loading || actionLoading}
                 >
                   {item.icon && <item.icon className="w-5 h-5 mr-3" />}
                   {item.name}
@@ -283,19 +267,28 @@ export default function StudentDashboard() {
         </nav>
         <Button
           onClick={handleLogout}
-          className="mt-6 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
+          className={`mt-6 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center ${
+            loading || actionLoading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={loading || actionLoading}
         >
           <LogOut className="w-5 h-5 mr-2" />
           Logout
         </Button>
       </motion.div>
 
-      <div className="flex-1 p-8 relative">
+      {/* Main Content */}
+      <div
+        className={`flex-1 p-8 relative transition-all duration-300 ${
+          loading || actionLoading ? "blur-sm" : ""
+        }`}
+      >
         {sessions.length > 0 && (
           <div className="absolute top-4 right-4">
             <Button
               onClick={() => setShowSessionPopup(true)}
               className="bg-yellow-500 hover:bg-yellow-600 text-white relative"
+              disabled={loading || actionLoading}
             >
               <Bell className="w-6 h-6" />
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -405,54 +398,17 @@ export default function StudentDashboard() {
           )}
 
           {activeSection === "assessment" && (
-            <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Assessments</h2>
-              {!currentAssessment ? (
-                <div className="space-y-4">
-                  {assessments.map((assessment, index) => (
-                    <Card key={index} className="hover:shadow-lg transition-shadow bg-white">
-                      <CardContent className="p-6 flex justify-between items-center">
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-800">{assessment.title}</h3>
-                          <p className="text-gray-600">{assessment.questions.length} questions</p>
-                        </div>
-                        <Button onClick={() => startAssessment(assessment)} className="bg-amber-500 hover:bg-amber-600">
-                          Start Assessment
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-800">{currentAssessment.title}</h3>
-                  {currentAssessment.questions.map((q, index) => (
-                    <div key={index} className="space-y-2">
-                      <Label className="text-lg">{q.question}</Label>
-                      <RadioGroup
-                        value={answers[`question-${index}`] || ""}
-                        onValueChange={(value) => handleAnswerChange(`question-${index}`, value)}
-                      >
-                        {q.options.map((option, optIndex) => (
-                          <div key={optIndex} className="flex items-center space-x-2">
-                            <RadioGroupItem value={option} id={`option-${index}-${optIndex}`} />
-                            <Label htmlFor={`option-${index}-${optIndex}`}>{option}</Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                  ))}
-                  <Button onClick={submitAssessment} className="bg-amber-500 hover:bg-amber-600">
-                    Submit Assessment
-                  </Button>
-                  {score !== null && (
-                    <div className="mt-4 p-4 bg-green-100 rounded-lg">
-                      <p className="text-lg font-bold text-green-800">Your Score: {score.toFixed(2)}%</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <Assessments
+              assessments={assessments}
+              currentAssessment={currentAssessment}
+              setCurrentAssessment={setCurrentAssessment}
+              answers={answers}
+              setAnswers={setAnswers}
+              score={score}
+              setScore={setScore}
+              username={username}
+              fetchDashboardData={fetchDashboardData}
+            />
           )}
 
           {activeSection === "learning" && (
@@ -563,9 +519,12 @@ export default function StudentDashboard() {
                         </p>
                         <Button
                           onClick={() => handleToolClick(tool.route)}
-                          className="w-full bg-gradient-to-r from-orange-600 to-amber-600 text-white hover:from-orange-700 hover:to-amber-700 transition-all duration-300 rounded-full py-2 shadow-md"
+                          className={`w-full bg-gradient-to-r from-orange-600 to-amber-600 text-white hover:from-orange-700 hover:to-amber-700 transition-all duration-300 rounded-full py-2 shadow-md ${
+                            actionLoading ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                          disabled={actionLoading}
                         >
-                          Launch Tool
+                          {actionLoading ? "Launching..." : "Launch Tool"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -576,6 +535,98 @@ export default function StudentDashboard() {
           )}
         </motion.div>
       </div>
+
+      {/* Full-Screen Loading Overlay */}
+      {(loading || actionLoading) && (
+        <motion.div
+          className="fixed inset-0 flex items-center justify-center bg-[#1f2937] bg-opacity-80 z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex flex-col items-center justify-center">
+            <div className="career-vision-spinner">
+              <div className="spinner-circle"></div>
+            </div>
+            <p className="text-white text-lg mt-4 font-semibold">{loadingMessage}</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Inline CSS for the CareerVision Spinner */}
+      <style jsx>{`
+        .career-vision-spinner {
+          position: relative;
+          width: 60px;
+          height: 60px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .spinner-circle {
+          width: 50px;
+          height: 50px;
+          border: 5px solid transparent;
+          border-top: 5px solid #f59e0b;
+          border-right: 5px solid #ffd700;
+          border-radius: 50%;
+          animation: spin 1s linear infinite, glow 1.5s ease-in-out infinite;
+          position: absolute;
+        }
+
+        /* Subtle pulse effect around the spinner */
+        .career-vision-spinner::before {
+          content: '';
+          position: absolute;
+          width: 70px;
+          height: 70px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(245, 158, 11, 0.3), transparent);
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes glow {
+          0%, 100% {
+            box-shadow: 0 0 8px #f59e0b, 0 0 15px #ffd700;
+          }
+          50% {
+            box-shadow: 0 0 15px #f59e0b, 0 0 25px #ffd700;
+          }
+        }
+
+        @keyframes pulse {
+          0% {
+            transform: scale(0.8);
+            opacity: 0.7;
+          }
+          50% {
+            transform: scale(1.2);
+            opacity: 0.3;
+          }
+          100% {
+            transform: scale(0.8);
+            opacity: 0.7;
+          }
+        }
+      `}</style>
     </div>
   );
 }
+
+const toolItems = [
+  { name: "Mock Interviews", icon: MessageSquare, route: "/interview" },
+  { name: "Resume ATS Score", icon: Shield, route: "/ats-score" },
+  { name: "Model Prediction", icon: Brain, route: "/career-form-1" },
+  { name: "Resume Creation", icon: FileQuestion, route: "/template" },
+];

@@ -126,34 +126,31 @@ export default function Interview() {
     }
   };
 
-  const generateFeedbackWithGemini = async () => {
-    if (!model) return { feedback: [], score: 5 };
-
-    // Only evaluate answered questions
-    const answeredQuestions = questions.slice(0, responses.length);
-    const answeredResponses = responses;
-
-    const prompt = `
-      Evaluate responses for a ${jobRole} with ${jobDescription} tech stack and ${yearsExperience} years of experience at ${difficulty} difficulty.
-      Provide detailed feedback for each response (relevance, depth, clarity) and assign a score (0-2 per response). Total score out of ${answeredQuestions.length * 2}.
-      Questions and Responses:
-      ${answeredQuestions.map((q, i) => `Question ${i + 1}: ${q}\nResponse ${i + 1}: ${answeredResponses[i] || "No response."}`).join("\n")}
-      Format:
-      - Feedback for each question: "Question X: [Feedback] You say that's it."
-      - Total score: [Number]
-    `;
-
+  const evaluateResponseWithDeepSeek = async (question: string, response: string) => {
     try {
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
-      const feedbackLines = responseText.split("\n").filter((line) => line.trim().startsWith("- Feedback for Question"));
-      const feedback = feedbackLines.map((line) => line.replace("- Feedback for ", ""));
-      const scoreLine = responseText.split("\n").find((line) => line.toLowerCase().includes("total score"));
-      const totalScore = scoreLine ? parseInt(scoreLine.match(/\d+/)?.[0] || "5") : 5;
-      return { feedback, score: totalScore };
+      const res = await fetch("/interview/evaluate-response", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question,
+          response,
+          job_role: jobRole,
+          years_of_experience: yearsExperience,
+          hardness: difficulty,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorResponse = await res.text();
+        console.error("Server responded with:", errorResponse);
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data.evaluation;
     } catch (error) {
-      console.error("Error generating feedback:", error);
-      return { feedback: [], score: 5 };
+      console.error("Error evaluating response:", error);
+      return { feedback: "Error evaluating response", rating: 0 };
     }
   };
 
@@ -179,12 +176,15 @@ export default function Interview() {
     }
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     if (recognitionRef.current && isRecording) {
       recognitionRef.current.stop();
       setIsRecording(false);
       const updatedResponses = [...responses, transcript.trim()];
       setResponses(updatedResponses);
+
+      const evaluation = await evaluateResponseWithDeepSeek(questions[currentQuestionIndex], transcript.trim());
+      setFeedback((prev) => [...prev, evaluation.feedback]);
 
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -195,14 +195,13 @@ export default function Interview() {
   };
 
   const handleFinalSubmit = async () => {
-    const { feedback, score } = await generateFeedbackWithGemini();
-    setFeedback(feedback);
-    setScore(score);
+    const totalScore = feedback.reduce((acc, curr) => acc + (curr.rating || 0), 0);
+    setScore(totalScore);
 
     await fetch("/api/saveInterview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobRole, jobDescription, yearsExperience, questions, responses, feedback, score }),
+      body: JSON.stringify({ jobRole, jobDescription, yearsExperience, questions, responses, feedback, score: totalScore }),
     });
   };
 
@@ -353,7 +352,7 @@ export default function Interview() {
                   onClick={() => {
                     setIsSubmitted(false);
                     document.exitFullscreen();
-                    router.push("/interviews");
+                    router.push("/interview");
                   }}
                   className="w-full bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 transition font-semibold mt-4"
                 >
