@@ -218,7 +218,7 @@ export default function StudentLogin() {
         {!showOtp && (
           <>
             <div className="mt-6 text-center">
-              <Link href="/forgot-password" className="text-[#f59e0b] hover:text-[#FFD700] font-medium">
+              <Link href="/student-login" className="text-[#f59e0b] hover:text-[#FFD700] font-medium">
                 Forgot your password?
               </Link>
             </div>

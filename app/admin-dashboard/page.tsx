@@ -92,7 +92,14 @@ export default function AdminDashboard() {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
+        const data: {
+          tests_taken: number;
+          total_students: number;
+          active_students: number;
+          total_assessments: number;
+          tests_per_assessment: GraphData[];
+          student_activity: GraphData[];
+        } = await response.json();
         if (response.ok) {
           setTestsTaken(data.tests_taken);
           setTotalStudents(data.total_students);
@@ -112,9 +119,9 @@ export default function AdminDashboard() {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
+        const data: { assessments: { title: string; questions: { length: number }[] }[] } = await response.json();
         if (response.ok) {
-          setAssessments(data.assessments.map((a: any) => ({
+          setAssessments(data.assessments.map((a) => ({
             title: a.title,
             question_count: a.questions.length,
           })));
@@ -130,9 +137,9 @@ export default function AdminDashboard() {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
+        const data: { courses: { course_id: string; module_name: string; course_title: string; course_link?: string; course_content?: string }[] } = await response.json();
         if (response.ok) {
-          setCourses(data.courses.map((c: any) => ({
+          setCourses(data.courses.map((c) => ({
             id: c.course_id || Math.random().toString(36).substr(2, 9),
             moduleName: c.module_name,
             courseTitle: c.course_title,
@@ -151,9 +158,9 @@ export default function AdminDashboard() {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
+        const data: { sessions: { session_id: string; session_title: string; session_date: string; session_type: string }[] } = await response.json();
         if (response.ok) {
-          setSessions(data.sessions.map((s: any) => ({
+          setSessions(data.sessions.map((s) => ({
             id: s.session_id || Math.random().toString(36).substr(2, 9),
             session_title: s.session_title,
             session_date: s.session_date,
