@@ -72,7 +72,7 @@ export default function StudentSignup() {
           setError('Signup failed. Please try again.')
         }
       }
-    } catch (err) {
+    } catch {
       setLoading(false)
       setError('An error occurred. Please try again.')
     }
