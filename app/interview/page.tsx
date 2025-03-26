@@ -4,6 +4,34 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// Type declarations for SpeechRecognition API
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+  const SpeechRecognition: {
+    prototype: SpeechRecognition;
+    new (): SpeechRecognition;
+  };
+  interface SpeechRecognition extends EventTarget {
+    continuous: boolean;
+    interimResults: boolean;
+    lang: string;
+    onresult: (event: SpeechRecognitionEvent) => void;
+    onerror: (event: SpeechRecognitionErrorEvent) => void;
+    onend: () => void;
+    start: () => void;
+    stop: () => void;
+  }
+  interface SpeechRecognitionEvent {
+    results: SpeechRecognitionResultList;
+  }
+  interface SpeechRecognitionErrorEvent {
+    error: string;
+  }
+}
+
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 if (!API_KEY) console.error("Gemini API key is not defined in .env file");
 
@@ -40,7 +68,9 @@ export default function Interview() {
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = "en-US";
@@ -295,8 +325,8 @@ export default function Interview() {
               </div>
               {transcript && (
                 <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-inner">
-                  <h3 className="text-lg font-semibold text-gray-800">Live Transcript:</h3>
-                  <p className="text-gray-700">{transcript}</p>
+                  <h3 className="text-lg font-semibold text-gray-700">Live Transcript:</h3>
+                  <p className="text-gray-600">{transcript}</p>
                 </div>
               )}
             </div>
