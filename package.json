@@ -21,7 +21,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.40.0",
-    "firebase": "^11.4.0",
     "framer-motion": "^12.5.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
@@ -49,7 +48,6 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/firebase": "^3.2.3",
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.4",
     "@types/pg": "^8.11.11",
