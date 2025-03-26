@@ -41,25 +41,19 @@ export default function GetStartedPage() {
     visible: { opacity: 1, y: 0 },
   };
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
     setLoading(true); // Set loading to true when the button is clicked
     setLoadingMessage("ASS GETTING STARTED"); // Set the loading message
 
-    const startTime = Date.now(); // Record the start time
-
-    // Simulate navigation with router.push
-    router.push("/chosen");
-
-    // Calculate the elapsed time after navigation
-    const elapsedTime = Date.now() - startTime;
-
-    // Ensure the loading animation runs for at least the minimum time
-    const minimumLoadingTime = 1000; // Minimum 1 second for the loading animation
-    const remainingTime = Math.max(0, minimumLoadingTime - elapsedTime);
-
-    setTimeout(() => {
-      setLoading(false); // Set loading to false after the minimum time
-    }, remainingTime);
+    try {
+      // Perform navigation and wait for it to complete
+      await router.push("/chosen");
+      // Note: In a real app, router.push doesn't inherently "resolve" when the page loads.
+      // The loading state will persist until the next page renders, which is handled by Next.js.
+    } catch (error) {
+      console.error("Navigation failed:", error);
+      setLoading(false); // Reset loading state if navigation fails
+    }
   };
 
   return (
@@ -179,7 +173,7 @@ export default function GetStartedPage() {
       >
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Take the Next Step?</h2>
-          <p className="text-xl mb-8">Join thousands of professionals who&apos;ve transformed their careers with CareerVISION</p>
+          <p className="text-xl mb-8">Join thousands of professionals who've transformed their careers with CareerVISION</p>
           <motion.div whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}>
             <Button
               onClick={handleGetStarted}

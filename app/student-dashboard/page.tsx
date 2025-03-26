@@ -101,8 +101,6 @@ export default function StudentDashboard() {
     }
 
     const fetchData = async () => {
-      const startTime = Date.now(); // Record the start time of the requests
-
       try {
         // Fetch Profile
         const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/profile/get`, {
@@ -130,15 +128,7 @@ export default function StudentDashboard() {
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
-        // Calculate the elapsed time
-        const elapsedTime = Date.now() - startTime;
-        const minimumLoadingTime = 1000; // Minimum 1 second for the initial loading animation
-
-        // Ensure the loading animation runs for at least the minimum time
-        const remainingTime = Math.max(0, minimumLoadingTime - elapsedTime);
-        setTimeout(() => {
-          setLoading(false); // Set loading to false after the minimum time
-        }, remainingTime);
+        setLoading(false); // Stop loading once all data is fetched
       }
     };
 
@@ -147,18 +137,15 @@ export default function StudentDashboard() {
 
   const handleProfileClick = async () => {
     setActionLoading(true);
-    setLoadingMessage("Opening Profile..."); // Set loading message for profile action
+    setLoadingMessage("Opening Profile...");
 
-    // Simulate navigation response time (e.g., 3 seconds)
-    const navigationTime = 3000; // Set to 3 seconds for testing; adjust based on actual navigation time
-    await new Promise((resolve) => setTimeout(resolve, navigationTime)); // Simulate the navigation delay
-
-    router.push("/student-profile");
-
-    // Set the loading animation duration to match the navigation time
-    setTimeout(() => {
-      setActionLoading(false); // Stop the loading animation after the exact navigation time
-    }, navigationTime);
+    try {
+      await router.push("/student-profile");
+      // Loading will persist until the new page renders, handled by Next.js
+    } catch (err) {
+      console.error("Navigation to profile failed:", err);
+      setActionLoading(false); // Reset loading state on error
+    }
   };
 
   const handleCourseClick = (course: Course) => {
@@ -196,18 +183,15 @@ export default function StudentDashboard() {
 
   const handleToolClick = async (route: string) => {
     setActionLoading(true);
-    setLoadingMessage("Launching..."); // Set loading message for tool launch
+    setLoadingMessage("Launching...");
 
-    // Simulate navigation response time (e.g., 3 seconds)
-    const navigationTime = 3000; // Set to 3 seconds for testing; adjust based on actual navigation time
-    await new Promise((resolve) => setTimeout(resolve, navigationTime)); // Simulate the navigation delay
-
-    router.push(route);
-
-    // Set the loading animation duration to match the navigation time
-    setTimeout(() => {
-      setActionLoading(false); // Stop the loading animation after the exact navigation time
-    }, navigationTime);
+    try {
+      await router.push(route);
+      // Loading will persist until the new page renders, handled by Next.js
+    } catch (err) {
+      console.error("Navigation to tool failed:", err);
+      setActionLoading(false); // Reset loading state on error
+    }
   };
 
   const handleLogout = () => {
@@ -343,7 +327,7 @@ export default function StudentDashboard() {
                   <Card className="hover:shadow-lg transition-shadow bg-white border border-gray-200">
                     <CardContent className="p-6">
                       <h3 className="text-xl font-bold text-gray-800 mb-2">Active Time</h3>
-                      <p className="text-4xl font-bold text-indigo-600">45h</p>
+                      <p className="text-4xl font-bold text-indigo-600">0hrs</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -570,7 +554,6 @@ export default function StudentDashboard() {
           position: absolute;
         }
 
-        /* Subtle pulse effect around the spinner */
         .career-vision-spinner::before {
           content: '';
           position: absolute;

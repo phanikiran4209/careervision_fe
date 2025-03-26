@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export default function StudentSignup() {
   const [formData, setFormData] = useState({
@@ -15,16 +15,37 @@ export default function StudentSignup() {
     mobile: ''
   })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+
+    // Validate mobile number: only allow digits and limit to 10
+    if (name === 'mobile') {
+      const digitsOnly = value.replace(/\D/g, '') // Remove non-digits
+      if (digitsOnly.length > 10) return // Prevent more than 10 digits
+      setFormData(prev => ({ ...prev, [name]: digitsOnly }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
+    setError(null) // Clear error on input change
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate mobile number length before submission
+    if (formData.mobile.length !== 10) {
+      setError('Mobile number must be exactly 10 digits')
+      return
+    }
+
     setLoading(true)
+    setError(null)
+    setSuccess(null)
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/signup`, {
@@ -35,64 +56,133 @@ export default function StudentSignup() {
         body: JSON.stringify(formData)
       })
 
+      const data = await response.json()
+
       setLoading(false)
 
       if (response.ok) {
-        router.push('/student-login')
+        setSuccess('Successfully created user!')
+        setTimeout(() => {
+          router.push('/student-login')
+        }, 2000) // Navigate after 2 seconds to show success message
+      } else {
+        if (data.message === 'Email already exists') {
+          setError('Email already taken')
+        } else {
+          setError('Signup failed. Please try again.')
+        }
       }
-    } catch  {
+    } catch (err) {
       setLoading(false)
+      setError('An error occurred. Please try again.')
     }
   }
 
   return (
-    <motion.div 
-      className="min-h-screen bg-[#1f2937] flex items-center justify-center p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div 
-        className="max-w-md w-full bg-white p-8 rounded-lg shadow-xl"
-        initial={{ y: 20 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Student Signup</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="username" className="block text-gray-700 font-bold mb-2">Username</label>
-            <Input type="text" id="username" name="username" value={formData.username} onChange={handleChange} required />
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-lg">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800 flex items-center">
+          <span className="text-amber-500 mr-2">│</span> Student Signup
+        </h1>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="username" className="block text-gray-700 font-medium mb-2 uppercase text-sm">
+              Username
+            </label>
+            <Input 
+              type="text" 
+              id="username" 
+              name="username" 
+              value={formData.username} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-2 border-gray-300 rounded-full px-4 py-2 text-gray-700 focus:border-amber-500 focus:ring-0"
+              placeholder="Enter your username"
+            />
           </div>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700 font-bold mb-2">Email</label>
-            <Input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
+          <div>
+            <label htmlFor="email" className="block text-gray-700 font-medium mb-2 uppercase text-sm">
+              Email
+            </label>
+            <Input 
+              type="email" 
+              id="email" 
+              name="email" 
+              value={formData.email} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-2 border-gray-300 rounded-full px-4 py-2 text-gray-700 focus:border-amber-500 focus:ring-0"
+              placeholder="Enter your email"
+            />
           </div>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-gray-700 font-bold mb-2">Password</label>
-            <Input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
+          <div>
+            <label htmlFor="password" className="block text-gray-700 font-medium mb-2 uppercase text-sm">
+              Password
+            </label>
+            <Input 
+              type="password" 
+              id="password" 
+              name="password" 
+              value={formData.password} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-2 border-gray-300 rounded-full px-4 py-2 text-gray-700 focus:border-amber-500 focus:ring-0"
+              placeholder="Enter your password"
+            />
           </div>
-          <div className="mb-4">
-            <label htmlFor="mobile" className="block text-gray-700 font-bold mb-2">Mobile Number</label>
-            <Input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
+          <div>
+            <label htmlFor="mobile" className="block text-gray-700 font-medium mb-2 uppercase text-sm">
+              Mobile Number
+            </label>
+            <Input 
+              type="tel" 
+              id="mobile" 
+              name="mobile" 
+              value={formData.mobile} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-2 border-gray-300 rounded-full px-4 py-2 text-gray-700 focus:border-amber-500 focus:ring-0"
+              placeholder="Enter your mobile number"
+            />
           </div>
 
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 px-6 rounded-full shadow-lg"
-              disabled={loading}
-            >
-              {loading ? 'Signing Up...' : 'Sign Up'}
-            </Button>
-          </motion.div>
+          {/* Error and Success Messages */}
+          {error && (
+            <div className="flex items-center p-3 bg-red-100 text-red-700 rounded-lg">
+              <AlertCircle className="w-5 h-5 mr-2" />
+              <span>{error}</span>
+            </div>
+          )}
+          {success && (
+            <div className="flex items-center p-3 bg-green-100 text-green-700 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              <span>{success}</span>
+            </div>
+          )}
+
+          <Button 
+            type="submit" 
+            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-full"
+            disabled={loading}
+          >
+            {loading ? 'Signing Up...' : 'Sign Up'}
+          </Button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">Already have an account?</p>
-          <Link href="/student-login" className="text-amber-600 hover:text-amber-700 font-bold">Log in</Link>
+        <div className="mt-6 space-y-2 text-center">
+          <p className="text-gray-600 text-sm">
+            Already have an account?{' '}
+            <Link href="/student-login" className="text-amber-500 hover:text-amber-600 font-medium">
+              Sign in now
+            </Link>
+          </p>
+          <p className="text-gray-600 text-sm">
+            <Link href="/chosen" className="text-gray-600 hover:text-gray-800 flex items-center justify-center">
+              <span className="mr-1">←</span> Back to login selection
+            </Link>
+          </p>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )
 }

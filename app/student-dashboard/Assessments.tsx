@@ -62,14 +62,12 @@ export default function Assessments({
   useEffect(() => {
     const handleFullScreenChange = () => {
       if (!document.fullscreenElement && isAssessmentActive) {
-        // If the user exits full-screen mode (e.g., by pressing Escape), end the test
         submitAssessment();
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isAssessmentActive) {
-        // Prevent default Escape behavior and submit the assessment
         event.preventDefault();
         submitAssessment();
       }
@@ -93,70 +91,69 @@ export default function Assessments({
 
   const startAssessment = (assessment: Assessment) => {
     setCurrentAssessment(assessment);
-    setAnswers({});
+    setAnswers({}); // Reset answers
     setScore(null);
-    setTimeLeft(5 * 60); // Reset timer to 5 minutes
+    setTimeLeft(5 * 60);
     setShowResults(false);
     setIsAssessmentActive(true);
 
-    // Enter full-screen mode
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
     }
   };
 
   const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+    // Ensure answers is always an object before updating
+    setAnswers({ ...answers, [questionId]: answer });
   };
 
   const submitAssessment = async () => {
-    if (currentAssessment) {
-      const token = localStorage.getItem("jwtToken");
-      const totalQuestions = currentAssessment.questions.length;
-      let correctAnswers = 0;
+    if (!currentAssessment) return;
 
-      currentAssessment.questions.forEach((q, index) => {
-        if (answers[`question-${index}`] === q.correct_answer) {
-          correctAnswers++;
-        }
+    const token = localStorage.getItem("jwtToken");
+    const totalQuestions = currentAssessment.questions.length;
+    let correctAnswers = 0;
+
+    currentAssessment.questions.forEach((q, index) => {
+      if (answers[`question-${index}`] === q.correct_answer) {
+        correctAnswers++;
+      }
+    });
+
+    const calculatedScore = (correctAnswers / totalQuestions) * 100;
+    setScore(calculatedScore);
+    setShowResults(true);
+    setIsAssessmentActive(false);
+
+    const assessmentData = {
+      username,
+      assessment_id: currentAssessment.title,
+      score: calculatedScore,
+      date: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assessment/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(assessmentData),
       });
-
-      const calculatedScore = (correctAnswers / totalQuestions) * 100;
-      setScore(calculatedScore);
-      setShowResults(true);
-      setIsAssessmentActive(false);
-
-      const assessmentData = {
-        username,
-        assessment_id: currentAssessment.title,
-        score: calculatedScore,
-        date: new Date().toISOString(),
-      };
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assessment/submit`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(assessmentData),
-        });
-        if (response.ok && token) {
-          await fetchDashboardData(token);
-        }
-      } catch (err) {
-        console.error("Submit assessment error:", err);
+      if (response.ok && token) {
+        await fetchDashboardData(token);
       }
+    } catch (err) {
+      console.error("Submit assessment error:", err);
+    }
 
-      // Exit full-screen mode
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen();
     }
   };
 
   const closeAssessment = () => {
-    // If the assessment is active, submit it before closing
     if (isAssessmentActive) {
       submitAssessment();
     }
@@ -165,12 +162,11 @@ export default function Assessments({
   const closeResults = () => {
     setShowResults(false);
     setCurrentAssessment(null);
-    setIsAssessmentActive(false);
   };
 
   return (
     <div className="relative">
-      {/* Assessment List (Visible when no assessment is active) */}
+      {/* Assessment List */}
       {!currentAssessment || !isAssessmentActive ? (
         <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Assessments</h2>
@@ -222,7 +218,6 @@ export default function Assessments({
                 <RadioGroup
                   value={answers[`question-${index}`] || ""}
                   onValueChange={(value) => handleAnswerChange(`question-${index}`, value)}
-                  disabled={showResults}
                   className="space-y-3"
                 >
                   {q.options.map((option, optIndex) => (
@@ -241,7 +236,7 @@ export default function Assessments({
                         htmlFor={`option-${index}-${optIndex}`}
                         className="ml-3 text-lg text-gray-700 cursor-pointer"
                       >
-                        {String.fromCharCode(97 + optIndex)}) {option}
+                        {option}
                       </Label>
                     </div>
                   ))}
@@ -249,16 +244,14 @@ export default function Assessments({
               </div>
             ))}
           </div>
-          {!showResults && (
-            <div className="p-6 flex justify-end">
-              <Button
-                onClick={submitAssessment}
-                className="bg-amber-500 hover:bg-amber-600 text-white text-lg px-8 py-3 rounded-full shadow-md"
-              >
-                Submit Assessment
-              </Button>
-            </div>
-          )}
+          <div className="p-6 flex justify-end">
+            <Button
+              onClick={submitAssessment}
+              className="bg-amber-500 hover:bg-amber-600 text-white text-lg px-8 py-3 rounded-full shadow-md"
+            >
+              Submit Assessment
+            </Button>
+          </div>
         </div>
       )}
 
@@ -266,13 +259,7 @@ export default function Assessments({
       {showResults && score !== null && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full relative overflow-hidden">
-            <Confetti
-              width={window.innerWidth}
-              height={window.innerHeight}
-              recycle={false}
-              numberOfPieces={200}
-              gravity={0.2}
-            />
+            <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={200} />
             <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Assessment Completed!</h3>
             <p className="text-lg font-semibold text-green-800 text-center mb-6">
               Your Score: {score.toFixed(2)}%

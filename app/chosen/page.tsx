@@ -15,33 +15,27 @@ import { motion } from "framer-motion";
 export default function ChosenPage() {
   const router = useRouter();
   const [selectedLogin, setSelectedLogin] = useState<string>("");
-  const [loading, setLoading] = useState(false); 
-  const [loadingMessage, setLoadingMessage] = useState(""); 
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
-  const handleLogin = () => {
-    if (!selectedLogin) return; 
+  const handleLogin = async () => {
+    if (!selectedLogin) return;
 
-    setLoading(true); 
-    setLoadingMessage("Navigating to Login..."); 
-    const startTime = Date.now(); // Record the start time
+    setLoading(true);
+    setLoadingMessage("Navigating to Login...");
 
-    // Navigate based on the selected login type
-    if (selectedLogin === "student") {
-      router.push("/student-login");
-    } else if (selectedLogin === "admin") {
-      router.push("/admin-login");
+    try {
+      // Navigate based on the selected login type and wait for navigation to initiate
+      if (selectedLogin === "student") {
+        await router.push("/student-login");
+      } else if (selectedLogin === "admin") {
+        await router.push("/admin-login");
+      }
+      // Note: The loading state will persist until the new page renders, handled by Next.js
+    } catch (error) {
+      console.error("Navigation failed:", error);
+      setLoading(false); // Reset loading state if navigation fails
     }
-
-    // Calculate the elapsed time after navigation
-    const elapsedTime = Date.now() - startTime;
-
-    // Ensure the loading animation runs for at least the minimum time
-    const minimumLoadingTime = 1000; // Minimum 1 second for the loading animation
-    const remainingTime = Math.max(0, minimumLoadingTime - elapsedTime);
-
-    setTimeout(() => {
-      setLoading(false); // Set loading to false after the minimum time
-    }, remainingTime);
   };
 
   return (

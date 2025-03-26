@@ -99,10 +99,10 @@ export default function StudentLogin() {
 
         if (profileResponse.ok && profileData.exists) {
           console.log("Profile exists, redirecting to dashboard");
-          router.push("/student-dashboard");
+          await router.push("/student-dashboard");
         } else {
           console.log("Profile does not exist, redirecting to profile");
-          router.push("/student-profile");
+          await router.push("/student-profile");
         }
       } else {
         setError("Invalid OTP. Please try again.");
@@ -230,7 +230,7 @@ export default function StudentLogin() {
             </div>
             <div className="mt-4 text-center">
               <Link href="/chosen" className="text-gray-600 hover:text-[#f59e0b]">
-                &larr; Back to login selection
+                ← Back to login selection
               </Link>
             </div>
           </>
@@ -279,7 +279,6 @@ export default function StudentLogin() {
           position: absolute;
         }
 
-        /* Subtle pulse effect around the spinner */
         .career-vision-spinner::before {
           content: '';
           position: absolute;
