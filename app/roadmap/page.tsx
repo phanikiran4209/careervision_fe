@@ -1,68 +1,66 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { CheckCircle, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { CheckCircle, ChevronRight } from "lucide-react";
 
 // Define the types for the roadmap data
 interface RoadmapItem {
-  category: string
-  subtopics: string[]
+  category: string;
+  subtopics: string[];
 }
 
 interface RoadmapResponse {
-  career: string
-  roadmap: RoadmapItem[]
+  career: string;
+  roadmap: RoadmapItem[];
 }
 
 export default function RoadmapPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
-  const [roadmapData, setRoadmapData] = useState<RoadmapResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [, setToken] = useState<string | null>(null)
-  const [isRoadmapVisible, setIsRoadmapVisible] = useState(false)
-  const [hasShownToast, setHasShownToast] = useState(false) // Track if toast has been shown
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const [roadmapData, setRoadmapData] = useState<RoadmapResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [, setToken] = useState<string | null>(null);
+  const [isRoadmapVisible, setIsRoadmapVisible] = useState(false);
+  const [hasShownToast, setHasShownToast] = useState(false); // Track if toast has been shown
 
   // Get the career from the query parameter
-  const career = searchParams.get("career")
+  const career = searchParams.get("career");
 
   // Load token from localStorage and fetch roadmap
   useEffect(() => {
-    const storedToken = localStorage.getItem("jwtToken")
-    console.log("Token from localStorage on mount:", storedToken)
-    setToken(storedToken)
+    const storedToken = localStorage.getItem("jwtToken");
+    console.log("Token from localStorage on mount:", storedToken);
+    setToken(storedToken);
 
     if (!career) {
       toast({
-        id: "roadmap-error-no-career",
         title: "Error",
         description: "No career provided",
         variant: "destructive",
-        duration: 3000,
-      })
-      router.push("/student-dashboard")
-      return
+        //duration: 3000,
+      });
+      router.push("/student-dashboard");
+      return;
     }
 
     if (!storedToken) {
       toast({
-        id: "roadmap-error-no-token",
         title: "Error",
         description: "Please login first. No token found.",
         variant: "destructive",
-        duration: 3000,
-      })
-      router.push("/login")
-      return
+        //duration: 3000,
+      });
+      router.push("/login");
+      return;
     }
 
     const fetchRoadmap = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/roadmap/generate`, {
           method: "POST",
@@ -71,45 +69,43 @@ export default function RoadmapPage() {
             "Authorization": `Bearer ${storedToken}`,
           },
           body: JSON.stringify({ career }),
-        })
+        });
 
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || "Failed to fetch roadmap")
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch roadmap");
         }
 
-        const data: RoadmapResponse = await response.json()
-        setRoadmapData(data)
-        setIsRoadmapVisible(true)
+        const data: RoadmapResponse = await response.json();
+        setRoadmapData(data);
+        setIsRoadmapVisible(true);
 
         // Show toast only once
         if (!hasShownToast) {
           toast({
-            id: "roadmap-success", // Unique ID to prevent stacking
             title: "Success",
             description: "Roadmap generated successfully!",
             variant: "success",
-            duration: 3000,
-          })
-          setHasShownToast(true) // Mark toast as shown
+            //duration: 3000,
+          });
+          setHasShownToast(true); // Mark toast as shown
         }
       } catch (error) {
-        console.error("Error fetching roadmap:", error)
+        console.error("Error fetching roadmap:", error);
         toast({
-          id: "roadmap-error-fetch",
           title: "Error",
-          description: error.message || "Failed to fetch roadmap",
+          description: error instanceof Error ? error.message : "Failed to fetch roadmap",
           variant: "destructive",
-          duration: 3000,
-        })
-        router.push("/student-dashboard")
+          //duration: 3000,
+        });
+        router.push("/student-dashboard");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchRoadmap()
-  }, [career, router, toast, hasShownToast])
+    fetchRoadmap();
+  }, [career, router, toast, hasShownToast]);
 
   // Animation variants
   const containerVariants = {
@@ -121,7 +117,7 @@ export default function RoadmapPage() {
         delayChildren: 0.3,
       },
     },
-  }
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, x: -50 },
@@ -133,7 +129,7 @@ export default function RoadmapPage() {
         ease: "easeOut",
       },
     },
-  }
+  };
 
   const subtopicVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -145,11 +141,11 @@ export default function RoadmapPage() {
         ease: "easeOut",
       },
     },
-  }
+  };
 
   const handleBackToDashboard = () => {
-    router.push("/student-dashboard")
-  }
+    router.push("/student-dashboard");
+  };
 
   if (loading) {
     return (
@@ -163,7 +159,7 @@ export default function RoadmapPage() {
           Loading roadmap...
         </motion.p>
       </div>
-    )
+    );
   }
 
   if (!roadmapData) {
@@ -171,7 +167,7 @@ export default function RoadmapPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <p className="text-white text-2xl">No roadmap data available.</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -252,5 +248,5 @@ export default function RoadmapPage() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }
