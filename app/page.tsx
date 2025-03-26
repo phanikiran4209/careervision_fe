@@ -43,7 +43,7 @@ export default function GetStartedPage() {
 
   const handleGetStarted = async () => {
     setLoading(true); // Set loading to true when the button is clicked
-    setLoadingMessage("ASS GETTING STARTED"); // Set the loading message
+    setLoadingMessage("APP GETTING STARTED"); // Set the loading message
 
     try {
       // Perform navigation and wait for it to complete
@@ -173,7 +173,7 @@ export default function GetStartedPage() {
       >
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Take the Next Step?</h2>
-          <p className="text-xl mb-8">Join thousands of professionals who've transformed their careers with CareerVISION</p>
+          <p className="text-xl mb-8">Join thousands of professionals who have transformed their careers with CareerVISION</p>
           <motion.div whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}>
             <Button
               onClick={handleGetStarted}
